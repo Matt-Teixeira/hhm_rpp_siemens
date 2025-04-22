@@ -4,7 +4,9 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "siemens_ct": "node index.js SIEMENS_CT",
+    "siemens_mri": "node index.js SIEMENS_MRI",
+    "siemens_cv": "node index.js SIEMENS_CV"
   },
   "keywords": [],
   "author": "",
