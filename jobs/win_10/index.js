@@ -51,6 +51,8 @@ const win_10_parsers = async (job_id, sysConfigData, file_config, run_log) => {
         break;
     }
 
+    if (sysConfigData.modality === "CV/IR") return;
+
     // Save Siemens log to DB
     const path = `${sysConfigData.debian_server_path}/${sysConfigData.log_config.file_name}`;
 

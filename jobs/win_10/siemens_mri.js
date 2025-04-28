@@ -150,10 +150,10 @@ const win10_siemens_mri = async (System, capture_datetime) => {
 
     await db.any(query);
 
-    // Update alert.offline_hhm_conn table with host_datetime
-    const resent_host_datetime =
-      mappedData[mappedData.length - 1].host_datetime;
+    // GET THE MOST RECENT (first) host_datetime
+    const resent_host_datetime = mappedData[0].host_datetime;
 
+    // UPDATE TABLE AND COLUMN alert.offline_hhm_conn - rpp_host_datetime WITH THE MOST RECENT host_datetime
     const upsert_str = build_upsert_str(System.sme, resent_host_datetime);
 
     await db.any(upsert_str);

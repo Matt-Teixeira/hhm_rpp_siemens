@@ -27,7 +27,6 @@ WHERE
 	sys.manufacturer = 'Siemens'
 	AND sys.modality LIKE '%CT'
 	AND ac.run_group = 1
-    AND sys.id = 'SME00856'
 GROUP BY
   sys.id,
   sys.manufacturer,

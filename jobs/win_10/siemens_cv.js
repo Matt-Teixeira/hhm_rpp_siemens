@@ -162,10 +162,10 @@ const siemens_cv_parser = async (System, capture_datetime) => {
 
       await db.any(query);
 
-      // console.log("\nmappedData - ge_mri");
-      // console.log(System.sme);
-      // console.log(`Rows Inserted: ${mappedData.length}`);
-      // console.log(mappedData[mappedData.length - 1]);
+      console.log("\nmappedData - ge_mri");
+      console.log(System.sme);
+      console.log(`Rows Inserted: ${mappedData.length}`);
+      console.log(mappedData[mappedData.length - 1]);
 
       // Update alert.offline_hhm_conn table with host_datetime
       const resent_host_datetime =
