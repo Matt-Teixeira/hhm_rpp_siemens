@@ -9,10 +9,11 @@ const {
 } = require("../redis/redisHelpers");
 
 class Siemens_10 extends System {
+  data_acqu_path = process.env.DATA_STORE_DEV;
   constructor(sysConfigData, file_config, job_id, run_log) {
     super(sysConfigData, file_config, job_id, run_log);
-    this.complete_file_path = `${sysConfigData.debian_server_path}/${file_config.file_name}`;
-    this.directory_path = sysConfigData.debian_server_path;
+    this.complete_file_path = `${this.data_acqu_path}/${sysConfigData.id}/${file_config.file_name}`;
+    this.directory_path = `${this.data_acqu_path}/${sysConfigData.id}`;
   }
   lastModPath = "./read/sh/get_file_last_mod.sh";
   redis_line;

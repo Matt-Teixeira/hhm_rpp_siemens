@@ -16,6 +16,7 @@ const win_10_parsers = async (job_id, sysConfigData, file_config, run_log) => {
     sme: sysConfigData.id,
     file_config: file_config
   };
+  const data_acqu_path = process.env.DATA_STORE_DEV;
   await addLogEvent(I, run_log, "win_10_parsers", cal, note, null);
   try {
     const capture_datetime = dt_now();
@@ -54,7 +55,7 @@ const win_10_parsers = async (job_id, sysConfigData, file_config, run_log) => {
     if (sysConfigData.modality === "CV/IR") return;
 
     // Save Siemens log to DB
-    const path = `${sysConfigData.debian_server_path}/${sysConfigData.log_config.file_name}`;
+    const path = `${data_acqu_path}/${sysConfigData.id}/${sysConfigData.log_config.file_name}`;
 
     await gzip_n_save(
       job_id,

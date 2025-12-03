@@ -30,7 +30,7 @@ const win10_siemens_ct = async (System, capture_datetime) => {
   let note = {
     job_id: System.job_id,
     sme: System.sme,
-    file: System.file_config
+    file: System.file_config,
   };
 
   try {
@@ -61,11 +61,11 @@ const win10_siemens_ct = async (System, capture_datetime) => {
           job_id: System.job_id,
           sme: System.sme,
           file: System.file_config,
-          message: `End of new data`
+          message: `End of new data`,
         };
         // Log file's last mod datetime
         const file_mod_datetime = await execLastMod(lastModPath, [
-          System.complete_file_path
+          System.complete_file_path,
         ]);
         note.last_mod = file_mod_datetime;
         await System.addLogEvent(
@@ -91,7 +91,7 @@ const win10_siemens_ct = async (System, capture_datetime) => {
             sme: System.sme,
             file: System.file_config,
             message: "This is not a blank new line - Bad Match",
-            line: line
+            line: line,
           };
           await System.addLogEvent(
             System.W,
@@ -121,7 +121,7 @@ const win10_siemens_ct = async (System, capture_datetime) => {
           sme: System.sme,
           line,
           match_group: matches.groups,
-          message: "date_time object null"
+          message: "date_time object null",
         };
         await System.addLogEvent(
           System.W,
@@ -143,7 +143,7 @@ const win10_siemens_ct = async (System, capture_datetime) => {
         extracted_metadata.push({
           system_id: matches.groups.system_id,
           text_group: matches.groups.text_group,
-          host_datetime: matches.groups.host_datetime
+          host_datetime: matches.groups.host_datetime,
         });
       }
 
@@ -156,11 +156,13 @@ const win10_siemens_ct = async (System, capture_datetime) => {
 
     const mappedData = mapDataToSchema(data, siemens_ct_mri);
 
-    // console.log("\nmappedData - siemens_ct");
-    // console.log(System.sme);
-    // console.log(`Rows Inserted: ${mappedData.length}`);
-    // console.log(mappedData[mappedData.length - 1]);
-    // console.log(mappedData);
+    /*
+    console.log("\nmappedData - siemens_ct");
+    console.log(System.sme);
+    console.log(`Rows Inserted: ${mappedData.length}`);
+    console.log(mappedData[0]);
+    console.log(mappedData[mappedData.length - 1]);
+    */
 
     // ** End Parse
 

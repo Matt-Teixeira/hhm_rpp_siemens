@@ -16,11 +16,11 @@ const [
   addLogEvent,
   writeLogEvents,
   dbInsertLogEvents,
-  makeAppRunLog
+  makeAppRunLog,
 ] = require("./utils/logger/log");
 const {
   type: { I, W, E },
-  tag: { cal, det, cat, seq, qaf }
+  tag: { cal, det, cat, seq, qaf },
 } = require("./utils/logger/enums");
 
 // UTIL
@@ -29,7 +29,7 @@ const { v4: uuidv4 } = require("uuid");
 async function run_job(job_id, system, run_log) {
   let note = {
     job_id,
-    system_id: system.id
+    system_id: system.id,
   };
 
   try {
@@ -53,21 +53,13 @@ async function on_boot() {
       REDIS_IP: process.env.REDIS_IP,
       PG_USER: process.env.PG_USER,
       PG_DB: process.env.PG_DB,
-      argv: process.argv
+      argv: process.argv,
     };
     await addLogEvent(I, run_log, "on_boot", cal, note, null);
 
     let queryString = boot_queires[shell_value];
 
     const systems = await pgPool.any(queryString);
-
-    // FOR DEV TESTING TO REACH DEV DATA_ACQU FILES @ /home/matt-teixeira/hep3/hhm_data_acquisition
-    if (process.env.DEV_ENV === "dev") {
-      let dv_path = "/home/matt-teixeira/hep3/hhm_data_acquisition";
-      for (let system of systems) {
-        system.debian_server_path = `${dv_path}/files/${system.id}`;
-      }
-    }
 
     console.log(systems);
 
@@ -76,8 +68,7 @@ async function on_boot() {
 
       await run_job(job_id, system, run_log);
     }
-    // await dbInsertLogEvents(pgp, run_log);
-    console.log(run_log.log_events);
+    await dbInsertLogEvents(pgp, run_log);
     await writeLogEvents(run_log);
   } catch (error) {
     console.log(error);

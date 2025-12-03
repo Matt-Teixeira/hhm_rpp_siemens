@@ -137,10 +137,13 @@ const win10_siemens_mri = async (System, capture_datetime) => {
 
     const mappedData = mapDataToSchema(data, siemens_ct_mri);
 
-    // console.log("\nmappedData - siemens_mri");
-    // console.log(System.sme);
-    // console.log(`Rows Inserted: ${mappedData.length}`);
-    // console.log(mappedData[mappedData.length - 1]);
+    
+    console.log("\nmappedData - siemens_mri");
+    console.log(System.sme);
+    console.log(`Rows Inserted: ${mappedData.length}`);
+    console.log(mappedData[0]);
+    console.log(mappedData[mappedData.length - 1]);
+    
 
     // ** End Parse
 
