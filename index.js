@@ -20,7 +20,7 @@ const [
 ] = require("./utils/logger/log");
 const {
   type: { I, W, E },
-  tag: { cal, det, cat, seq, qaf },
+  tag: { cal, cat },
 } = require("./utils/logger/enums");
 
 // UTIL
@@ -60,8 +60,6 @@ async function on_boot() {
     let queryString = boot_queires[shell_value];
 
     const systems = await pgPool.any(queryString);
-
-    console.log(systems);
 
     for await (const system of systems) {
       const job_id = uuidv4();
