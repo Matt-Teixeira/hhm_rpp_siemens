@@ -27,6 +27,7 @@ WHERE
 	sys.manufacturer = 'Siemens'
 	AND sys.modality LIKE '%CT'
 	AND ac.run_group = 1
+  AND sys.process_log IS TRUE
 GROUP BY
   sys.id,
   sys.manufacturer,
@@ -68,6 +69,7 @@ GROUP BY
     sys.manufacturer = 'Siemens'
     AND sys.modality = 'MRI'
     AND ac.run_group = 1
+    AND sys.process_log IS TRUE
   GROUP BY
     sys.id,
     ac.system_id,
@@ -106,6 +108,7 @@ GROUP BY
     sys.manufacturer = 'Siemens'
     AND sys.modality = 'CV/IR'
     AND ac.run_group = 1
+    AND sys.process_log IS TRUE
   GROUP BY
     sys.id,
     ac.system_id,
