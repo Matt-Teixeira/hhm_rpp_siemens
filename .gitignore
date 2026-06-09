@@ -4,6 +4,7 @@ node_modules/
 *.txt
 *.txe
 *.output
+*.crt
 
 node_modules/
 .env
