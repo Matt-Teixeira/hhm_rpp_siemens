@@ -55,7 +55,7 @@ services:
 # no acquisition tooling (lftp/rsync/sshpass/mdbtools/expect) since this app
 # only reads ACQ files + talks to PG/Redis.
   app_tools:
-    image: hhm_rpp:staging
+    image: hhm_rpp:${IMAGE_TAG}
     <<: [*common_env, *common_mounts]
     volumes:
       - ./:/workspace
