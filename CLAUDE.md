@@ -78,7 +78,7 @@ Sequence agreed 2026-08-25 (Part 3 Known dependencies preserved; #1's
 entrypoint-repair lands in build.sh/preflight instead — see KNOWN WARTS):
 
 1. [x] This file (banner first), stale docs corrected
-2. [ ] `build.sh` — in-tree npm install, log-dir mkdir, shared-image presence check
+2. [x] `build.sh` — in-tree npm install, log-dir mkdir, shared-image presence check
 3. [ ] Logger/compose/env — ONE COMMIT: single-path log.js (`USER_ID`/`LOGGER_MODE`),
        `${LOG_DIR:-./utils/logger/logs}` mount, drop node_mod_cache + hardcoded
        run-logs mounts, delete dead `app` service, rewrite `.env.example`
