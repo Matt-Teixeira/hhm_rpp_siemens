@@ -1,12 +1,12 @@
 # CLAUDE.md
 
-> **⚠️ MID-MIGRATION (started 2026-08-25).** This app is being aligned to the fleet
-> dev/release paradigm. The specification is
-> `data_acquisition/docs/migration_CLAUDE.md` (Part 1 = conventions, Part 3 =
-> checklist); the reference implementations are **data_acquisition** (pilot,
-> 2026-08-24) and **monday** (2026-08-25). Until this banner is removed, sections
-> below describe a moving target — each is corrected in the commit that makes it
-> true. Where this file and the paradigm docs disagree, the paradigm docs win.
+> **Migrated to the fleet dev/release paradigm 2026-08-25** (third app, after
+> data_acquisition and monday). Conventions:
+> `data_acquisition/docs/migration_CLAUDE.md` Part 1. Dev clone:
+> `~/apps/hhm_rpp_siemens`; `/opt/apps/hhm_rpp_siemens` is build output produced
+> ONLY by `build-release.sh`. Cutover verified over two cron cycles
+> (2026-08-25 19:46 + 20:16 UTC: both families, all `RELEASE_SHA=1bd5828`,
+> zero `dev-tree`).
 
 **hhm_rpp_siemens** is a Node.js parser: it incrementally reads Siemens equipment
 `Application.log` files (fetched to `/opt/resources/acqu_files/<SME>/` by
@@ -18,8 +18,8 @@ Run-once by design — triggered on a schedule, not a long-running service.
 
 | argv | boot query | systems (2026-08-25) | status |
 | --- | --- | --- | --- |
-| `SIEMENS_CT` | Siemens, modality `%CT`, run_group 1, process_log | 11 | **live** (scheduled at cutover) |
-| `SIEMENS_MRI` | Siemens, modality `MRI`, run_group 1, process_log | 1 | **live** (scheduled at cutover) |
+| `SIEMENS_CT` | Siemens, modality `%CT`, run_group 1, process_log | 11 | **live** — svc crontab `15,45 * * * *` at `:15:55` |
+| `SIEMENS_MRI` | Siemens, modality `MRI`, run_group 1, process_log | 1 | **live** — svc crontab `15,45 * * * *` at `:16:05` |
 | `SIEMENS_CV` | Siemens, modality `CV/IR`, run_group 1, process_log | 0 | **dead by config** — stays unscheduled (owner decision 2026-08-25) |
 
 Incremental mechanism: Redis key `<SME>.<file_name>` (e.g. `SME01074.Application.log`)
@@ -28,14 +28,19 @@ line, inserts the new rows, then advances the cursor **after** a successful inse
 Overlapping runs of the same family would double-insert — cron entries must use
 `flock -n`.
 
-## Current state (verified 2026-08-25, pre-migration)
+## Schedule (shared svc crontab — `sudo crontab -u svc -l`)
 
-- **The app has never run on this server.** Zero rows in `util.app_run_logs` for
-  `app_name='hhm_rpp_siemens'`; `log.siemens_*` tables empty; no cron entry in any
-  crontab. Source files have been accumulating unparsed since June 2026 — expect a
-  large first-cycle surge when the schedule goes live.
-- Migration state and gap audit: see the session notes / commit history on
-  `STAGING_docker` from 2026-08-25 onward.
+Installed 2026-08-25 in the *DAILY OR MORE FREQUENT* section, hardened from day
+one: absolute `/usr/bin/docker`/`/usr/bin/flock`, `flock -n` (cursor advances
+after insert — overlap would double-insert), `-T`, direct `node index.js <FAMILY>`
+argv, bounded single-`>` `.out` files in `/opt/run-logs/hhm_rpp_siemens/`.
+`sleep 55`/`65` keeps clear of the ge/philips pileup at `:15:00` and mmb-rpp at
+`:17`. The schedule is host configuration — changing a cadence needs no release.
+
+Historical note: before 2026-08-25 this app had **never run on this server**
+(zero `util.app_run_logs` rows, empty `log.siemens_*` tables, no cron entry
+anywhere) while data_acquisition fetched its source files every 30 min. First
+data: 2026-08-25 dev smokes (`dev-tree` rows), first release runs on `1bd5828`.
 
 ## KNOWN WARTS (deliberate — do not "fix" casually)
 
@@ -62,7 +67,10 @@ Overlapping runs of the same family would double-insert — cron entries must us
   per-item sign-off): `utils/vpn/`, `utils/config-processor/`, `utils/units/`,
   non-siemens SQL under `utils/db/sql/`, `redis/redisHelpers.js` `dp:queue` +
   rmmu helpers (no callers), `pm2` dependency, `jobs/win_7/` (no `win_7`
-  systems configured), `tooling/gzip_file.js`.
+  systems configured), `tooling/gzip_file.js`. Same pile: the MRI/CT job files
+  carry raw `console.log` debug dumps (sample rows, `mappedData`) that bypass
+  `LOGGER_MODE` and land in the cron `.out` files — harmless because those are
+  bounded single-`>` overwrites, but they are noise, not the run record.
 
 ## Running
 
@@ -92,35 +100,3 @@ judge health by *which* warnings appear, not whether any did.
   **is registered** in the host rotation script (`rotate-envs-20260817.sh`), which
   rewrites both `/opt/apps/hhm_rpp_siemens/.env` and `~/apps/hhm_rpp_siemens/.env`
   when a secret rotates — both copies must keep values matching the reference.
-
-## Migration TODO (transient — delete when banner comes off)
-
-Sequence agreed 2026-08-25 (Part 3 Known dependencies preserved; #1's
-entrypoint-repair lands in build.sh/preflight instead — see KNOWN WARTS):
-
-1. [x] This file (banner first), stale docs corrected
-2. [x] `build.sh` — in-tree npm install, log-dir mkdir, shared-image presence check
-3. [x] Logger/compose/env — ONE COMMIT: single-path log.js (`USER_ID`/`LOGGER_MODE`),
-       `${LOG_DIR:-./utils/logger/logs}` mount, drop node_mod_cache + hardcoded
-       run-logs mounts, delete dead `app` service, rewrite `.env.example`
-4. [x] Boot `env_note` fix (drop undefined legacy keys; add `USER_ID`,
-       `LOGGER_MODE`, `RELEASE_SHA||'dev-tree'`; keep `argv`)
-5. [x] `gracefulShutdown` (SIGTERM/SIGINT flush-once, honest non-zero exit)
-6. [x] `build-release.sh` (clean-tree guard, tar mirror, `#RELEASE:` transform,
-       `RELEASE_SHA` stamp, npm-install-as-svc with `HOME=/opt/apps/.svc-home`)
-7. [x] `preflight-check.sh` (authenticated PG sibling-container + Redis PING checks)
-8. Verify:
-   - [x] preflight zero warnings (44 ok / 0 warn / 0 err, 2026-08-25)
-   - [x] dev round-trip: CV boot smoke (no-op, exit 0), MRI (5,156 rows — first
-         data `log.siemens_mri` ever held), CT (230,378 rows / 8 of 11 systems;
-         the other 3 had empty/absent day-files) — all `dev-tree`, dev log path,
-         `/opt/run-logs` untouched
-   - [x] kill test: SIGTERM mid-run ×5 → `outcome=failed fatal=E_SIGNAL exit=1`,
-         both sinks persisted, once-guard held (exactly one row per kill)
-   - [x] guard negative test (untracked file → refusal, exit 1, nothing touched);
-         tar excludes verified by `tar -tf` diff (ships .env/package*, no
-         node_modules/.git/dev logs)
-   - [ ] release round-trip (needs sudo: .env backup, husk removal, build-release)
-   - [ ] svc-crontab install (CT `:15:55`, MRI `:16:05`, `flock -n`, `-T`,
-         bounded `.out`) → two-cycle DB verification → banner off + cross-repo
-         doc updates
