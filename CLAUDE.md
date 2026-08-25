@@ -85,7 +85,7 @@ entrypoint-repair lands in build.sh/preflight instead — see KNOWN WARTS):
 4. [x] Boot `env_note` fix (drop undefined legacy keys; add `USER_ID`,
        `LOGGER_MODE`, `RELEASE_SHA||'dev-tree'`; keep `argv`)
 5. [x] `gracefulShutdown` (SIGTERM/SIGINT flush-once, honest non-zero exit)
-6. [ ] `build-release.sh` (clean-tree guard, tar mirror, `#RELEASE:` transform,
+6. [x] `build-release.sh` (clean-tree guard, tar mirror, `#RELEASE:` transform,
        `RELEASE_SHA` stamp, npm-install-as-svc with `HOME=/opt/apps/.svc-home`)
 7. [ ] `preflight-check.sh` (authenticated PG sibling-container + Redis PING checks)
 8. [ ] Verify: preflight zero warnings → dev round-trip (CV boot smoke, MRI, CT,
