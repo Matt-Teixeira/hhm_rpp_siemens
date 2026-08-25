@@ -87,7 +87,7 @@ entrypoint-repair lands in build.sh/preflight instead — see KNOWN WARTS):
 5. [x] `gracefulShutdown` (SIGTERM/SIGINT flush-once, honest non-zero exit)
 6. [x] `build-release.sh` (clean-tree guard, tar mirror, `#RELEASE:` transform,
        `RELEASE_SHA` stamp, npm-install-as-svc with `HOME=/opt/apps/.svc-home`)
-7. [ ] `preflight-check.sh` (authenticated PG sibling-container + Redis PING checks)
+7. [x] `preflight-check.sh` (authenticated PG sibling-container + Redis PING checks)
 8. [ ] Verify: preflight zero warnings → dev round-trip (CV boot smoke, MRI, CT,
        kill test) → guard negative test → release round-trip → svc-crontab install
        (CT `:15:55`, MRI `:16:05`, `flock -n`, `-T`, bounded `.out`) → two-cycle DB
