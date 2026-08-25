@@ -64,6 +64,27 @@ Overlapping runs of the same family would double-insert — cron entries must us
   rmmu helpers (no callers), `pm2` dependency, `jobs/win_7/` (no `win_7`
   systems configured), `tooling/gzip_file.js`.
 
+## Running
+
+```bash
+bash preflight-check.sh          # expect ZERO warnings
+bash build.sh                    # deps in-tree + dev log dir + image check
+
+# Development — from the dev tree (~/apps/hhm_rpp_siemens), as yourself
+RUN_USER=<you> docker compose run --rm app_tools node index.js SIEMENS_CT   # or SIEMENS_MRI / SIEMENS_CV
+
+# Production — from the release copy, RUN_USER omitted (entrypoint defaults to svc)
+cd /opt/apps/hhm_rpp_siemens && docker compose run --rm app_tools node index.js SIEMENS_CT
+
+# Release
+bash build-release.sh            # refuses on a dirty tree; stamps RELEASE_SHA
+```
+
+Run logs: dev → `./utils/logger/logs/`, release → `/opt/run-logs/hhm_rpp_siemens/`
+(`<app>-log.<USER_ID>.<run_id>.json`; read with `cat`, never open in an editor).
+Steady-state runs carry one WARN per already-current system (`End of new data`) —
+judge health by *which* warnings appear, not whether any did.
+
 ## Environment / secrets
 
 - `.env` is gitignored; `.env.example` is the tracked record of required keys.
@@ -88,7 +109,18 @@ entrypoint-repair lands in build.sh/preflight instead — see KNOWN WARTS):
 6. [x] `build-release.sh` (clean-tree guard, tar mirror, `#RELEASE:` transform,
        `RELEASE_SHA` stamp, npm-install-as-svc with `HOME=/opt/apps/.svc-home`)
 7. [x] `preflight-check.sh` (authenticated PG sibling-container + Redis PING checks)
-8. [ ] Verify: preflight zero warnings → dev round-trip (CV boot smoke, MRI, CT,
-       kill test) → guard negative test → release round-trip → svc-crontab install
-       (CT `:15:55`, MRI `:16:05`, `flock -n`, `-T`, bounded `.out`) → two-cycle DB
-       verification → banner off + cross-repo doc updates
+8. Verify:
+   - [x] preflight zero warnings (44 ok / 0 warn / 0 err, 2026-08-25)
+   - [x] dev round-trip: CV boot smoke (no-op, exit 0), MRI (5,156 rows — first
+         data `log.siemens_mri` ever held), CT (230,378 rows / 8 of 11 systems;
+         the other 3 had empty/absent day-files) — all `dev-tree`, dev log path,
+         `/opt/run-logs` untouched
+   - [x] kill test: SIGTERM mid-run ×5 → `outcome=failed fatal=E_SIGNAL exit=1`,
+         both sinks persisted, once-guard held (exactly one row per kill)
+   - [x] guard negative test (untracked file → refusal, exit 1, nothing touched);
+         tar excludes verified by `tar -tf` diff (ships .env/package*, no
+         node_modules/.git/dev logs)
+   - [ ] release round-trip (needs sudo: .env backup, husk removal, build-release)
+   - [ ] svc-crontab install (CT `:15:55`, MRI `:16:05`, `flock -n`, `-T`,
+         bounded `.out`) → two-cycle DB verification → banner off + cross-repo
+         doc updates
