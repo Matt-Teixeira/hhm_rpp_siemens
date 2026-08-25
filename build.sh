@@ -24,7 +24,7 @@ env_val() {
 }
 
 IMAGE_TAG="$(env_val IMAGE_TAG)"
-: "${IMAGE_TAG:?IMAGE_TAG is not set — add it to .env (selects ge's shared image hhm_rpp:\$IMAGE_TAG)}"
+: "${IMAGE_TAG:?IMAGE_TAG is not set — add it to .env (selects the ge-owned shared image hhm_rpp:\$IMAGE_TAG)}"
 
 echo "==> ensure ./utils/logger/logs exists (owned by $(id -un), not created root by Docker)"
 mkdir -p ./utils/logger/logs
