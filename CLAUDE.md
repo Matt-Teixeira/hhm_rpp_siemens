@@ -44,12 +44,12 @@ data: 2026-08-25 dev smokes (`dev-tree` rows), first release runs on `1bd5828`.
 
 ## KNOWN WARTS (deliberate — do not "fix" casually)
 
-- **Shared image, transitional tag.** Compose runs `image: hhm_rpp:${IMAGE_TAG}`
-  (currently `staging`) — the image is **owned and built by hhm_rpp_ge**
-  (`hhm_rpp_ge/docker/Dockerfile`); philips and siemens have no Dockerfile on
-  purpose. Do NOT retag or rebuild it from this repo. When ge migrates, it will
-  build `hhm_rpp:svc` (plus a `staging` alias for un-migrated philips) and this
-  app flips its reference to `hhm_rpp:svc` in one commit + re-release.
+- **Shared image.** Compose runs `image: hhm_rpp:${IMAGE_TAG}` — the image is
+  **owned and built by hhm_rpp_ge** (`hhm_rpp_ge/docker/Dockerfile`); philips
+  and siemens have no Dockerfile on purpose. Do NOT retag or rebuild it from
+  this repo. Since ge's migration (2026-08-26) this app runs `IMAGE_TAG=svc`:
+  ge's dev trees build `hhm_rpp:<username>`, ge's release builds `hhm_rpp:svc`
+  and re-points the `staging` alias at the same image for un-migrated philips.
   Per-consumer identity tags were considered and rejected: the image carries no
   app code, and runtime identity is decided by `RUN_USER`/entrypoint.
 - **No entrypoint log-dir repair.** The gosu entrypoint is baked into ge's image
