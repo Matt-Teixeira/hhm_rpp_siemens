@@ -42,7 +42,7 @@ const win10_siemens_mri = async (System, capture_datetime) => {
     await System.get_redis_line();
 
     // Returns true if file in dir.
-    if (!System.is_file_present()) return;
+    if (!(await System.is_file_present())) return;
 
     await System.get_file_data();
 
