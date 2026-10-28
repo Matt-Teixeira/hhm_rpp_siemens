@@ -85,8 +85,14 @@ RUN_USER=<you> docker compose run --rm app_tools node index.js SIEMENS_CT   # or
 cd /opt/apps/hhm_rpp_siemens && docker compose run --rm app_tools node index.js SIEMENS_CT
 
 # Release
-bash build-release.sh            # refuses on a dirty tree; stamps RELEASE_SHA
+bash build-release.sh            # refuses on a dirty tree; stamps RELEASE_SHA + RELEASE_AT
 ```
+
+`RELEASE_SHA` and `RELEASE_AT` (UTC, `YYYY-MM-DDTHH:MM:SSZ`, for the orchestrator's
+release-drift view) are injected into the **deployed** `.env` by `build-release.sh` —
+never set them by hand; dev runs log `dev-tree` and a dev `.env` has neither.
+`preflight-check.sh` warns (from either copy) when the release has `RELEASE_SHA` but no
+or a malformed `RELEASE_AT` — a release cut before the stamp existed needs re-releasing.
 
 Run logs: dev → `./utils/logger/logs/`, release → `/opt/run-logs/hhm_rpp_siemens/`
 (`<app>-log.<USER_ID>.<run_id>.json`; read with `cat`, never open in an editor).
