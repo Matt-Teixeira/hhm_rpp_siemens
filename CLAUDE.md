@@ -95,7 +95,7 @@ never set them by hand; dev runs log `dev-tree` and a dev `.env` has neither.
 or a malformed `RELEASE_AT` — a release cut before the stamp existed needs re-releasing.
 
 Run logs: dev → `./utils/logger/logs/`, release → `/opt/run-logs/hhm_rpp_siemens/`
-(`<app>-log.<USER_ID>.<run_id>.json`; read with `cat`, never open in an editor).
+(`<app>-log.<USER_ID>.<New York stamp>.json`; read with `cat`, never open in an editor).
 Steady-state runs carry one WARN per already-current system (`End of new data`) —
 judge health by *which* warnings appear, not whether any did.
 
