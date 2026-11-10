@@ -86,6 +86,7 @@ const siemens_cv_parser = async (System, capture_datetime) => {
           note,
           null
         );
+        continue;
       }
 
       // Looping through each match block
@@ -96,8 +97,8 @@ const siemens_cv_parser = async (System, capture_datetime) => {
           let note = {
             job_id: System.job_id,
             sme: System.sysConfigData.id,
-            prev_epoch: data[data.length - 1].epoch,
-            sr_group: data[data.length - 1].sr,
+            file,
+            block: m.slice(0, 500),
             re: `${siemens[parsers[1]]}`,
             message: "NO MATCH FOUND"
           };
@@ -113,6 +114,12 @@ const siemens_cv_parser = async (System, capture_datetime) => {
         }
 
         matchGroups.groups.system_id = System.sme;
+
+        // Multi-line text bodies end lines with \r\r\n; normalize to \n
+        matchGroups.groups.text = matchGroups.groups.text.replace(
+          /\r*\n|\r+/g,
+          "\n"
+        );
 
         const host_date = `${matchGroups.groups.day}-${
           map_month[matchGroups.groups.month]
@@ -149,6 +156,8 @@ const siemens_cv_parser = async (System, capture_datetime) => {
         data.push(matchGroups.groups);
       }
 
+      if (data.length === 0) continue;
+
       const mappedData = mapDataToSchema(data, siemens_cv_schema);
 
       // ** End Parse
@@ -162,14 +171,14 @@ const siemens_cv_parser = async (System, capture_datetime) => {
 
       await db.any(query);
 
-      console.log("\nmappedData - ge_mri");
+      console.log("\nmappedData - siemens_cv");
       console.log(System.sme);
       console.log(`Rows Inserted: ${mappedData.length}`);
-      console.log(mappedData[mappedData.length - 1]);
+      console.log(mappedData[0]);
 
-      // Update alert.offline_hhm_conn table with host_datetime
-      const resent_host_datetime =
-        mappedData[mappedData.length - 1].host_datetime;
+      // Update alert.offline_hhm_conn table with the most recent host_datetime.
+      // Evtlog files are newest-first, but take the max rather than rely on order.
+      const resent_host_datetime = latest_host_datetime(mappedData);
 
       const upsert_str = build_upsert_str(System.sme, resent_host_datetime);
 
@@ -204,6 +213,17 @@ const siemens_cv_parser = async (System, capture_datetime) => {
   } catch (error) {
     console.log(error);
   }
+};
+
+const latest_host_datetime = (rows) => {
+  let latest = null;
+  for (const row of rows) {
+    if (!row.host_datetime) continue;
+    if (latest === null || new Date(row.host_datetime) > new Date(latest)) {
+      latest = row.host_datetime;
+    }
+  }
+  return latest;
 };
 
 const map_month = {

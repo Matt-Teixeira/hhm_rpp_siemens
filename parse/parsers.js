@@ -13,9 +13,14 @@ const win_10_re = {
 };
 
 const siemens = {
-  cv_bulk: /(?<data_block>Source.*?Text.*?\n)/gs,
+  // One event block: from a line starting "Source:" up to the next event, the
+  // "N message(s) read" footer, or end of file. Text bodies can span lines.
+  cv_bulk:
+    /^Source:[\s\S]*?(?=^Source:|^\d+ message\(s\) read|(?![\s\S]))/gm,
+  // Text runs until the Medcom-Infoblock (not captured) or end of block;
+  // trailing CR/LF/whitespace is left out of the group.
   cv_groups:
-    /Source:(?<source>.*?)(\r\n)Domain:(?<domain>.*?)(\r\n)Type:(?<type>.*?)(\r\n)ID:(?<id_group>.*?)(\r\n)Date:(?<dow>.*),\s(?<month>.*?)\s(?<day>\d+),\s(?<year>\d+),\s(?<time>.*?)(\r\n)Text:(?<text>.*)(\r\n)/s
+    /^Source:(?<source>.*?)\r*\nDomain:(?<domain>.*?)\r*\nType:(?<type>.*?)\r*\nID:(?<id_group>.*?)\r*\nDate:(?<dow>.*?),\s(?<month>\w+)\s(?<day>\d+),\s(?<year>\d+),\s(?<time>\d{1,2}:\d{2}:\d{2})\r*\nText:(?<text>[\s\S]*?)\s*(?=^Medcom-Infoblock:|(?![\s\S]))/m,
 };
 
 module.exports = {
