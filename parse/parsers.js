@@ -21,6 +21,14 @@ const siemens = {
   // trailing CR/LF/whitespace is left out of the group.
   cv_groups:
     /^Source:(?<source>.*?)\r*\nDomain:(?<domain>.*?)\r*\nType:(?<type>.*?)\r*\nID:(?<id_group>.*?)\r*\nDate:(?<dow>.*?),\s(?<month>\w+)\s(?<day>\d+),\s(?<year>\d+),\s(?<time>\d{1,2}:\d{2}:\d{2})\r*\nText:(?<text>[\s\S]*?)\s*(?=^Medcom-Infoblock:|(?![\s\S]))/m,
+  // XA<serial>_<yyyy_mm_dd>_AppEventLog.txt (Artis daily export). One event per
+  // line: "I  09-Nov-26 08:04:56\t2\tAX_SF            <I>message    </I>".
+  // Source is a fixed 16-char column (long names truncated to "xxx...").
+  // Indented "Time:/Text:" lines below an event are the Medcom-Infoblock and
+  // are not captured (matches cv_groups behaviour).
+  cv_app_event_line:
+    /^(?<state>[A-Z])\s+(?<day>\d{2})-(?<mon>[A-Z][a-z]{2})-(?<yy>\d{2})\s(?<time>\d{2}:\d{2}:\d{2})\t(?<id_group>\d+)\t(?<source>.{16})\s(?<text>.*?)\s*$/,
+  cv_app_event_domain: /^Domain\s*:\s*(?<domain>.*?)\s*$/m
 };
 
 module.exports = {

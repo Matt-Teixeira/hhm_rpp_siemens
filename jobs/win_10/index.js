@@ -1,6 +1,7 @@
 const win10_siemens_ct = require("./siemens_ct");
 const win10_siemens_mri = require("./siemens_mri");
 const siemens_cv_parser = require("./siemens_cv");
+const siemens_cv_app_event_parser = require("./siemens_cv_app_event");
 const Siemens_10 = require("../../acquisition/Siemens_10");
 const { gzip_n_save } = require("../../tooling");
 const { dt_now } = require("../../tooling/dates");
@@ -36,7 +37,13 @@ const win_10_parsers = async (job_id, sysConfigData, file_config, run_log) => {
           job_id,
           run_log
         );
-        await siemens_cv_parser(CV_System, capture_datetime);
+        // Systems configured with the AppEventLog regex (config.log.regex_models)
+        // read daily XA..._AppEventLog.txt files; others read Evtlog files.
+        if ((file_config.parsers || []).includes("cv_app_event_line")) {
+          await siemens_cv_app_event_parser(CV_System, capture_datetime);
+        } else {
+          await siemens_cv_parser(CV_System, capture_datetime);
+        }
         break;
       case "MRI":
         const MRI_System = new Siemens_10(
