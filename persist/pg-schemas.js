@@ -27,6 +27,9 @@ const siemens_cv_schema = {
   year: null,
   time: null,
   text: null,
+  // Medcom-Infoblock "Text:" detail. AppEventLog only: the Evtlog export
+  // truncates it to one character, so Evtlog rows leave it null.
+  medcom_text: null,
   capture_datetime: null,
   host_datetime: null
 };

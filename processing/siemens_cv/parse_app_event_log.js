@@ -19,10 +19,39 @@ function parse_app_event_log(fileData) {
   const domain_match = fileData.match(siemens.cv_app_event_domain);
   const domain = domain_match ? domain_match.groups.domain : null;
 
+  // Event the following Medcom lines belong to, and the Medcom Text lines
+  // collected for it so far (null until its "Text:" line is seen).
+  let current = null;
+  let medcom_lines = null;
+
+  const finish_event = () => {
+    if (current && medcom_lines) {
+      const medcom_text = medcom_lines
+        .map((l) => l.trim())
+        .filter(Boolean)
+        .join("\n");
+      current.medcom_text = medcom_text || null;
+    }
+    current = null;
+    medcom_lines = null;
+  };
+
   for (const line of fileData.split(/\r*\n|\r+/)) {
-    // Only lines that start an event; indented Medcom lines, separators,
-    // header and blank lines are skipped.
-    if (!/^[A-Z]\s+\d{2}-[A-Z][a-z]{2}-\d{2}\s/.test(line)) continue;
+    if (!/^[A-Z]\s+\d{2}-[A-Z][a-z]{2}-\d{2}\s/.test(line)) {
+      // Not an event line: separator, Medcom detail, header or blank.
+      if (/^-+\s*$/.test(line)) {
+        finish_event();
+      } else if (medcom_lines) {
+        medcom_lines.push(line);
+      } else if (current) {
+        const t = line.match(siemens.cv_app_event_medcom_text);
+        if (t) medcom_lines = [t.groups.text];
+        // Otherwise the "Time: ..., Process: ..." line: not kept.
+      }
+      continue;
+    }
+
+    finish_event();
 
     const m = line.match(siemens.cv_app_event_line);
     if (!m) {
@@ -35,7 +64,7 @@ function parse_app_event_log(fileData) {
       locale: "en-US"
     });
 
-    rows.push({
+    current = {
       source: g.source.trim(),
       domain,
       type: state_to_type[g.state] || g.state,
@@ -46,9 +75,12 @@ function parse_app_event_log(fileData) {
       year: date.isValid ? date.toFormat("yyyy") : null,
       time: g.time,
       // Medcom events are wrapped as "<I>message    </I>" (also seen: <B>)
-      text: g.text.replace(/^<([A-Z])>([\s\S]*?)\s*<\/\1>$/, "$2").trim()
-    });
+      text: g.text.replace(/^<([A-Z])>([\s\S]*?)\s*<\/\1>$/, "$2").trim(),
+      medcom_text: null
+    };
+    rows.push(current);
   }
+  finish_event();
 
   return { rows, unmatched };
 }

@@ -24,11 +24,14 @@ const siemens = {
   // XA<serial>_<yyyy_mm_dd>_AppEventLog.txt (Artis daily export). One event per
   // line: "I  09-Nov-26 08:04:56\t2\tAX_SF            <I>message    </I>".
   // Source is a fixed 16-char column (long names truncated to "xxx...").
-  // Indented "Time:/Text:" lines below an event are the Medcom-Infoblock and
-  // are not captured (matches cv_groups behaviour).
+  // Indented "Time:/Text:" lines below an event are the Medcom-Infoblock;
+  // only its Text (cv_app_event_medcom_text) is kept, as medcom_text.
   cv_app_event_line:
     /^(?<state>[A-Z])\s+(?<day>\d{2})-(?<mon>[A-Z][a-z]{2})-(?<yy>\d{2})\s(?<time>\d{2}:\d{2}:\d{2})\t(?<id_group>\d+)\t(?<source>.{16})\s(?<text>.*?)\s*$/,
-  cv_app_event_domain: /^Domain\s*:\s*(?<domain>.*?)\s*$/m
+  cv_app_event_domain: /^Domain\s*:\s*(?<domain>.*?)\s*$/m,
+  // Indented Medcom "Text:" line under an event. The text can continue on
+  // following unindented lines up to the next event or "-----" separator.
+  cv_app_event_medcom_text: /^\s+Text:\s?(?<text>.*)$/
 };
 
 module.exports = {
