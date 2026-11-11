@@ -252,7 +252,39 @@ async function get_last_cached_file(sme, rmmu_file_type, run_log) {
   }
 }
 
+// Set-based tracking (e.g. which daily files have been parsed). Unlike the
+// helpers above, these rethrow after logging: a failed read must never look
+// like an empty set, or callers would re-process everything.
+async function get_redis_set_members(sme, set_name, run_log) {
+  const note = { sme, set_name };
+  const redisClient = await initRedis();
+  try {
+    const members = await redisClient.sMembers(`${sme}.${set_name}`);
+    await redisClient.quit();
+    return members;
+  } catch (error) {
+    await addLogEvent(E, run_log, "get_redis_set_members", cat, note, error);
+    await redisClient.quit().catch(() => {});
+    throw error;
+  }
+}
+
+async function add_redis_set_member(sme, set_name, member, run_log) {
+  const note = { sme, set_name, member };
+  const redisClient = await initRedis();
+  try {
+    await redisClient.sAdd(`${sme}.${set_name}`, member);
+    await redisClient.quit();
+  } catch (error) {
+    await addLogEvent(E, run_log, "add_redis_set_member", cat, note, error);
+    await redisClient.quit().catch(() => {});
+    throw error;
+  }
+}
+
 module.exports = {
+  get_redis_set_members,
+  add_redis_set_member,
   updateRedisFileSize,
   getCurrentFileSize,
   getRedisFileSize,
